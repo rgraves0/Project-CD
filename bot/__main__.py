@@ -1,10 +1,11 @@
 import os
+import asyncio
 
 from config import Config, DYNAMIC_VARS
 
 from .tgclient import aio
 from .helpers.database.pg_impl import set_db
-
+from .modules.auto_downloader import hourly_auto_loop
 
 
 def load_dynamic_vars():
@@ -13,10 +14,11 @@ def load_dynamic_vars():
             setattr(Config, var, set_db.get_variable(var)[0])
 
 
-
 if __name__ == "__main__":
     if not os.path.isdir(Config.DOWNLOAD_BASE_DIR):
         os.makedirs(Config.DOWNLOAD_BASE_DIR)
     load_dynamic_vars()
-    aio.run()
     
+    # Auto-Downloader Background Loop ကို Pyrogram loop ထဲ ထည့်သွင်းခြင်း
+    aio.loop.create_task(hourly_auto_loop())
+    aio.run()
