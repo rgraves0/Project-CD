@@ -21,14 +21,12 @@ class QoClient:
         self.sec = None
         self.quality = 6
         
-        # --- အသစ်ထည့်ရမည့် code (Config ကို စစ်ဆေးခြင်း) ---
         if Config.QOBUZ_APP_ID:
             self.id = Config.QOBUZ_APP_ID
             if Config.QOBUZ_APP_SECRET:
                 self.secrets = [Config.QOBUZ_APP_SECRET] 
             else:
                 self.secrets = []
-        # ---------------------------------------------------
 
     async def api_call(self, epoint, **kwargs):
         if epoint == "user/login":
@@ -70,9 +68,14 @@ class QoClient:
                 "offset": kwargs["offset"],
                 "extra": "albums",
             }
+        elif epoint == "catalog/search":
+            params = {
+                "query": kwargs["query"],
+                "type": kwargs.get("type", "albums"),
+                "limit": kwargs.get("limit", 50),
+            }
         elif epoint == "favorite/getUserFavorites":
             unix = time.time()
-            # r_sig = "userLibrarygetAlbumsList" + str(unix) + kwargs["sec"]
             r_sig = "favoritegetUserFavorites" + str(unix) + kwargs["sec"]
             r_sig_hashed = hashlib.md5(r_sig.encode("utf-8")).hexdigest()
             params = {
@@ -121,7 +124,6 @@ class QoClient:
                     raise Exception("QOBUZ : Invalid App Secret. Please recheck your credentials.... Disabling QOBUZ")
                 return await r.json()
 
-
     async def multi_meta(self, epoint, key, id, type):
         total = 1
         offset = 0
@@ -137,7 +139,6 @@ class QoClient:
                 yield j
                 total -= 500
             offset += 500
-
 
     async def auth(self):
         if Config.QOBUZ_EMAIL:
@@ -171,15 +172,13 @@ class QoClient:
         self.id = str(bundle.get_app_id())
         self.secrets = [
             secret for secret in bundle.get_secrets().values() if secret
-        ]  # avoid empty fields
+        ]
 
     async def login(self):
-        # Config မှာ ID ရှိနေရင် Bundle ကို မလိုတော့ပါ
         if not self.id:
             self.get_tokens()
             
         self.session = aiohttp.ClientSession()
-        #self.rate_limiter = self.get_rate_limiter(30)
         self.session.headers.update(
             {
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:83.0) Gecko/20100101 Firefox/83.0",
@@ -191,7 +190,6 @@ class QoClient:
 
     async def cfg_setup(self):
         for secret in self.secrets:
-            # Falsy secrets
             if not secret:
                 continue
             if await self.test_secret(secret):
@@ -200,13 +198,9 @@ class QoClient:
         if self.sec is None:
             raise Exception("QOBUZ : Can't find any valid app secret")
 
-
-
-
-
     async def get_track_url(self, id):
-            fmt_id = self.quality
-            return await self.api_call("track/getFileUrl", id=id, fmt_id=fmt_id)
+        fmt_id = self.quality
+        return await self.api_call("track/getFileUrl", id=id, fmt_id=fmt_id)
 
     async def get_album_meta(self, id):
         return await self.api_call("album/get", id=id)
@@ -219,7 +213,6 @@ class QoClient:
         async for data in self.multi_meta("artist/get", "albums_count", id, None):
             res.append(data)
         return res
-        #return await self.multi_meta("artist/get", "albums_count", id, None)
 
     async def get_plist_meta(self, id):
         res = []
@@ -229,5 +222,8 @@ class QoClient:
 
     async def get_label_meta(self, id):
         return await self.multi_meta("label/get", "albums_count", id, None)
+
+    async def search_catalog(self, query, search_type="albums", limit=50):
+        return await self.api_call("catalog/search", query=query, type=search_type, limit=limit)
 
 qobuz_api = QoClient()
