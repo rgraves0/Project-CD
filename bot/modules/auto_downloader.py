@@ -184,7 +184,7 @@ async def execute_single_auto_job(notify_chat_id=None):
         fake_user['user_name'] = "AutoBot"
         fake_user['r_id'] = status_msg.id
         fake_user['chat_id'] = admin_id
-        fake_user['bot_msg'] = status_msg.id
+        fake_user['bot_msg'] = status_msg
 
         try:
             if "tidal.com" in target_url:
@@ -208,7 +208,7 @@ async def execute_single_auto_job(notify_chat_id=None):
 
 
 async def hourly_auto_loop():
-    await asyncio.sleep(15)  # Bot login & DB startup ပြီးစီးရန် ၁၅ စက္ကန့် စောင့်ပါမည်
+    await asyncio.sleep(15)
     LOGGER.info("AUTO-DL: Hourly scheduler started (Yangon 09:00 - 20:00, 12 albums/day)")
     last_run_slot = None
     while True:
