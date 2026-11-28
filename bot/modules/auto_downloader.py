@@ -260,15 +260,16 @@ async def run_batch_auto_jobs(count: int = 1, notify_chat_id=None):
 
 async def hourly_auto_loop():
     await asyncio.sleep(15)
-    LOGGER.info(f"AUTO-DL: Daily batch scheduler started (Yangon {DAILY_BATCH_HOUR_YANGON:02d}:00 -> {DAILY_BATCH_COUNT} albums/day)")
+    LOGGER.info(f"AUTO-DL: Scheduler initialized (Auto-daily={AUTO_DAILY_ENABLED})")
     last_run_date = None
     while True:
         try:
-            ygn = get_yangon_now()
-            today_str = ygn.strftime('%Y-%m-%d')
-            if ygn.hour == DAILY_BATCH_HOUR_YANGON and ygn.minute == 0 and last_run_date != today_str:
-                last_run_date = today_str
-                await run_batch_auto_jobs(count=DAILY_BATCH_COUNT)
+            if AUTO_DAILY_ENABLED:
+                ygn = get_yangon_now()
+                today_str = ygn.strftime('%Y-%m-%d')
+                if ygn.hour == DAILY_BATCH_HOUR_YANGON and ygn.minute == 0 and last_run_date != today_str:
+                    last_run_date = today_str
+                    await run_batch_auto_jobs(count=DAILY_BATCH_COUNT)
         except Exception as e:
             LOGGER.error(f"AUTO-DL Loop Error: {e}")
         await asyncio.sleep(25)
