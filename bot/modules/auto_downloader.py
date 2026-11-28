@@ -22,6 +22,7 @@ CHPROTECT_URL = os.getenv("CHPROTECT_URL", "https://chprotect.thihazaw.workers.d
 SYNC_SECRET = os.getenv("SYNC_SECRET", "")
 
 # မနက် 8:00 AM (ရန်ကုန်စံတော်ချိန်) တွင် အလိုအလျောက် တစ်နေ့စာ ၁၂ ခု ဒေါင်းမည့်အချိန်
+AUTO_DAILY_ENABLED = False
 DAILY_BATCH_HOUR_YANGON = 8
 DAILY_BATCH_COUNT = 12
 
